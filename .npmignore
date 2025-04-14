@@ -1,0 +1,10 @@
+# 제외할 것들
+node_modules/
+.vscode/
+.git/
+.gitignore
+README.md~
+*.log
+*.local
+test/
+examples/
