@@ -2,7 +2,10 @@
 
 A lightweight CLI tool that automatically runs your dev server and opens localhost in Google Chrome Incognito mode.
 
-https://github.com/user-attachments/assets/d13d4051-2f25-4ba0-864b-1739221de611
+
+
+https://github.com/user-attachments/assets/a2616347-7f4b-4559-9d37-2947f000ae83
+
 
 ---
 
