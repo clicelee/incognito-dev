@@ -4,7 +4,8 @@ A lightweight CLI tool that automatically runs your dev server and opens localho
 
 
 
-https://github.com/user-attachments/assets/a2616347-7f4b-4559-9d37-2947f000ae83
+https://github.com/user-attachments/assets/3acad271-4d6c-488f-b397-0572c03e8e63
+
 
 
 ---
