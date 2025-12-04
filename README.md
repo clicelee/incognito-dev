@@ -3,7 +3,7 @@
 A lightweight CLI tool that automatically runs your dev server and opens localhost in Google Chrome Incognito mode — no cache conflicts, no login sessions, just a clean slate every time.
 [Click here](http://incognito-dev-docs.vercel.app/) to visit the official website.
 
-./demo.mp4
+<video src="./demo.mp4" width="100%" autoplay loop muted playsinline></video>
 
 ---
 
