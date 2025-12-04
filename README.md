@@ -1,12 +1,9 @@
 # 🕶️ incognito-dev
 
-A lightweight CLI tool that automatically runs your dev server and opens localhost in Google Chrome Incognito mode.
+A lightweight CLI tool that automatically runs your dev server and opens localhost in Google Chrome Incognito mode — no cache conflicts, no login sessions, just a clean slate every time.
+[Click here](http://incognito-dev-docs.vercel.app/) to visit the official website.
 
-
-
-https://github.com/user-attachments/assets/3acad271-4d6c-488f-b397-0572c03e8e63
-
-
+./demo.mp4
 
 ---
 
@@ -22,7 +19,7 @@ npx incognito-dev
 
 ## 💡 Usage
 
-⚠️ No more npm run dev, no more yarn dev!
+⚠️ No more `npm run dev`, no more `yarn dev`!
 Instead, just run:
 
 ```bash
@@ -41,14 +38,14 @@ The tool will:
 
 ## Before vs After
 
-Before
+**Before:**
 ```bash
 npm run dev
 # Server starts, but you have to manually click the URL or copy-paste it
 # ...and it opens in your current browser session with all cookies/history
 ```
 
-After
+**After:**
 ```bash
 incognito-dev
 # Everything happens automatically in incognito mode!
@@ -80,7 +77,7 @@ incognito-dev
 
 - Automatic port detection via [`detect-port`](https://www.npmjs.com/package/detect-port)
 - Supports all major package managers: `npm`, `yarn`, `pnpm`
-- Opens Chrome incognito mode — no history, no login
+- Opens Chrome incognito mode — no history, no saved logins
 - Great for testing login pages or clean sessions
 - Works with various dev servers (Vite, Next.js, Create React App, etc.)
 
