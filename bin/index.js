@@ -16,6 +16,14 @@ const BANNER = `    ____                             _ __           _____ __    
 const ANSI_RE = /\x1b\[[0-9;]*m/g;
 const stripAnsi = (text) => text.replace(ANSI_RE, '');
 
+const URL_PATTERN = /(?:localhost|127\.0\.0\.1):(\d+)/;
+
+// Returns the port from the first local URL found in the text, or null
+function detectPort(text) {
+  const match = stripAnsi(text).match(URL_PATTERN);
+  return match ? match[1] : null;
+}
+
 function renderBox(title, lines) {
   const width = Math.max(...lines.map((l) => stripAnsi(l).length), title.length) + 2;
   const border = (s) => styleText('cyan', s);
@@ -153,7 +161,7 @@ function openIncognito(url, browser) {
   }
 }
 
-(async () => {
+async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
     printHelp();
@@ -226,8 +234,6 @@ function openIncognito(url, browser) {
     }
   };
 
-  const URL_PATTERN = /(?:localhost|127\.0\.0\.1):(\d+)/;
-
   let browserLaunched = false;
   let outputBuffer = '';
 
@@ -243,11 +249,10 @@ function openIncognito(url, browser) {
     if (browserLaunched) return;
 
     outputBuffer = (outputBuffer + stripAnsi(chunk.toString())).slice(-1000);
-    const match = outputBuffer.match(URL_PATTERN);
-    if (match) {
+    const port = detectPort(outputBuffer);
+    if (port) {
       browserLaunched = true;
       clearTimeout(detectTimer);
-      const port = match[1];
       console.log(styleText('green', `✔ Active port detected: ${port}`));
       openIncognito(`http://localhost:${port}`, browser);
     }
@@ -274,4 +279,10 @@ function openIncognito(url, browser) {
     stopDevServer();
     setTimeout(() => process.exit(0), 3000).unref();
   });
-})();
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = { detectPort, stripAnsi, getPackageManager, getDevCommand, parseArgs };

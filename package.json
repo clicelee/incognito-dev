@@ -8,6 +8,9 @@
   "files": [
     "bin"
   ],
+  "scripts": {
+    "test": "node --test"
+  },
   "engines": {
     "node": ">=20.12.0"
   },
