@@ -134,57 +134,35 @@ function openIncognito(url) {
     stdio: ['inherit', 'pipe', 'pipe'], // Pipe stderr too
   });
 
-  // Define various URL patterns
-  const urlPatterns = [
-    /localhost:(\d+)/,
-    /127\.0\.0\.1:(\d+)/,
-    /Local:\s+https?:\/\/localhost:(\d+)/,
-    /Running at\s+https?:\/\/localhost:(\d+)/,
-    /http:\/\/localhost:(\d+)/
-  ];
+  const URL_PATTERN = /(?:localhost|127\.0\.0\.1):(\d+)/;
 
   let browserLaunched = false;
+  let outputBuffer = '';
 
-  // Monitor stdout
-  devProcess.stdout.on('data', (data) => {
-    const output = data.toString();
-    console.log(output); // Show dev server output
-    
-    if (!browserLaunched) {
-      for (const pattern of urlPatterns) {
-        const match = output.match(pattern);
-        if (match) {
-          const port = match[1];
-          const url = `http://localhost:${port}`;
-          console.log(styleText('green', `✔ Active port detected: ${port}`));
-          openIncognito(url);
-          browserLaunched = true;
-          break;
-        }
-      }
+  const detectTimer = setTimeout(() => {
+    console.log(styleText('yellow', '⚠️ No local URL detected yet — the browser will still open automatically once your server prints one.'));
+  }, 15000);
+  detectTimer.unref();
+
+  // The URL may arrive split across chunks or wrapped in ANSI colors,
+  // so match against a rolling buffer of cleaned output.
+  const forwardAndDetect = (chunk, stream) => {
+    stream.write(chunk);
+    if (browserLaunched) return;
+
+    outputBuffer = (outputBuffer + stripAnsi(chunk.toString())).slice(-1000);
+    const match = outputBuffer.match(URL_PATTERN);
+    if (match) {
+      browserLaunched = true;
+      clearTimeout(detectTimer);
+      const port = match[1];
+      console.log(styleText('green', `✔ Active port detected: ${port}`));
+      openIncognito(`http://localhost:${port}`);
     }
-  });
-  
-  // Monitor stderr
-  devProcess.stderr.on('data', (data) => {
-    const output = data.toString();
-    console.error(output); // Show error output
-    
-    // Check URL patterns in stderr too (some dev servers output here)
-    if (!browserLaunched) {
-      for (const pattern of urlPatterns) {
-        const match = output.match(pattern);
-        if (match) {
-          const port = match[1];
-          const url = `http://localhost:${port}`;
-          console.log(styleText('green', `✔ Active port detected: ${port}`));
-          openIncognito(url);
-          browserLaunched = true;
-          break;
-        }
-      }
-    }
-  });
+  };
+
+  devProcess.stdout.on('data', (chunk) => forwardAndDetect(chunk, process.stdout));
+  devProcess.stderr.on('data', (chunk) => forwardAndDetect(chunk, process.stderr));
   
   // Handle process termination
   devProcess.on('close', (code) => {
