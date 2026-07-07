@@ -110,7 +110,13 @@ function openIncognito(url) {
     process.exit(1);
   }
   
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  let pkg;
+  try {
+    pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  } catch (error) {
+    console.error(styleText('red', `❌ Could not parse package.json: ${error.message}`));
+    process.exit(1);
+  }
   if (!pkg.scripts || !pkg.scripts.dev) {
     console.error(styleText('red', '❌ No "dev" script found in package.json.'));
     console.info(styleText('gray', '→ Please define a "dev" script. Example: "dev": "vite"'));
