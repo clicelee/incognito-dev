@@ -5,6 +5,20 @@
   "bin": {
     "incognito-dev": "./bin/index.js"
   },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clicelee/incognito-dev.git"
+  },
+  "homepage": "https://incognito-dev-docs.vercel.app/",
+  "bugs": {
+    "url": "https://github.com/clicelee/incognito-dev/issues"
+  },
   "keywords": [
     "cli",
     "dev",
