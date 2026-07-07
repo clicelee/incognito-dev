@@ -129,10 +129,31 @@ function openIncognito(url) {
   console.log(styleText('yellow', BANNER));
   console.log('\n' + box + '\n');
 
+  // Detach on POSIX so the wrapper shell and the dev server share a process
+  // group we can kill together — devProcess.kill() alone only kills the
+  // shell and orphans the actual dev server.
+  const isWindows = os.platform() === 'win32';
   const devProcess = spawn(command, {
     shell: true,
-    stdio: ['inherit', 'pipe', 'pipe'], // Pipe stderr too
+    stdio: ['inherit', 'pipe', 'pipe'],
+    detached: !isWindows,
   });
+
+  const stopDevServer = () => {
+    if (isWindows) {
+      try {
+        execSync(`taskkill /pid ${devProcess.pid} /T /F`, { stdio: 'ignore' });
+      } catch {
+        devProcess.kill();
+      }
+    } else {
+      try {
+        process.kill(-devProcess.pid, 'SIGTERM');
+      } catch {
+        devProcess.kill('SIGTERM');
+      }
+    }
+  };
 
   const URL_PATTERN = /(?:localhost|127\.0\.0\.1):(\d+)/;
 
@@ -164,20 +185,22 @@ function openIncognito(url) {
   devProcess.stdout.on('data', (chunk) => forwardAndDetect(chunk, process.stdout));
   devProcess.stderr.on('data', (chunk) => forwardAndDetect(chunk, process.stderr));
   
-  // Handle process termination
+  // Handle process termination (code is null when killed by a signal,
+  // e.g. after our own shutdown — treat that as a clean stop)
   devProcess.on('close', (code) => {
-    if (code !== 0) {
+    if (code) {
       console.log(styleText('red', `❌ Dev server exited with code ${code}.`));
     } else {
       console.log(styleText('green', '✅ Dev server stopped successfully.'));
     }
-    process.exit(code);
+    process.exit(code ?? 0);
   });
-  
-  // Handle user Ctrl+C
+
+  // Handle user Ctrl+C: stop the whole tree, then let the close event
+  // above do the final exit (force-quit if the server hangs)
   process.on('SIGINT', () => {
     console.log(styleText('yellow', '\n👋 Shutting down Incognito Dev...'));
-    devProcess.kill();
-    process.exit(0);
+    stopDevServer();
+    setTimeout(() => process.exit(0), 3000).unref();
   });
 })();
