@@ -53,46 +53,99 @@ function getDevCommand(pm) {
   return map[pm];
 }
 
-function openIncognito(url) {
+const BROWSERS = {
+  chrome: {
+    label: 'Google Chrome',
+    macApp: 'Google Chrome',
+    winCommand: 'chrome',
+    linuxCommands: ['google-chrome', 'google-chrome-stable', 'chromium'],
+    privateFlag: '--incognito',
+    privateLabel: 'Incognito Mode',
+  },
+  brave: {
+    label: 'Brave',
+    macApp: 'Brave Browser',
+    winCommand: 'brave',
+    linuxCommands: ['brave-browser', 'brave'],
+    privateFlag: '--incognito',
+    privateLabel: 'Private Mode',
+  },
+  edge: {
+    label: 'Microsoft Edge',
+    macApp: 'Microsoft Edge',
+    winCommand: 'msedge',
+    linuxCommands: ['microsoft-edge'],
+    privateFlag: '--inprivate',
+    privateLabel: 'InPrivate Mode',
+  },
+};
+
+function parseArgs(argv) {
+  const options = { browser: 'chrome', help: false };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--help' || arg === '-h') {
+      options.help = true;
+    } else if (arg === '--browser' || arg === '-b') {
+      options.browser = argv[++i];
+    } else if (arg.startsWith('--browser=')) {
+      options.browser = arg.slice('--browser='.length);
+    } else {
+      console.error(styleText('red', `❌ Unknown option: ${arg}`));
+      console.info(styleText('gray', '→ Run incognito-dev --help for usage.'));
+      process.exit(1);
+    }
+  }
+  return options;
+}
+
+function printHelp() {
+  console.log(`Usage: incognito-dev [options]
+
+Runs your dev server and opens localhost in a private browser window.
+
+Options:
+  -b, --browser <name>  Browser to use: ${Object.keys(BROWSERS).join(', ')} (default: chrome)
+  -h, --help            Show this help message`);
+}
+
+function openIncognito(url, browser) {
   const platform = os.platform();
-  
+
+  console.log(styleText('cyan', `🔍 Opening in ${browser.label} (${browser.privateLabel})...`));
   try {
     if (platform === 'darwin') {
-      // Improved AppleScript for macOS
-      const script = `
-        tell application "Google Chrome"
-          activate
-          set incognitoWindow to make new window with properties {mode:"incognito"}
-          set URL of active tab of incognitoWindow to "${url}"
-        end tell
-      `;
-      console.log(styleText('cyan', '🔍 Opening in Chrome Incognito mode...'));
-      execSync(`osascript -e '${script}'`);
+      // open -na needs no automation permission, unlike AppleScript
+      execSync(`open -na "${browser.macApp}" --args ${browser.privateFlag} --new-window "${url}"`);
     } else if (platform === 'win32') {
-      console.log(styleText('cyan', '🔍 Opening in Chrome Incognito mode...'));
-      execSync(`start chrome --new-window --incognito "${url}"`);
+      execSync(`start "" ${browser.winCommand} ${browser.privateFlag} --new-window "${url}"`);
     } else {
-      console.log(styleText('cyan', '🔍 Opening in Chrome Incognito mode...'));
-      execSync(`google-chrome --incognito --new-window "${url}"`);
+      let opened = false;
+      for (const cmd of browser.linuxCommands) {
+        try {
+          execSync(`${cmd} ${browser.privateFlag} --new-window "${url}" > /dev/null 2>&1 &`);
+          opened = true;
+          break;
+        } catch {
+          // try the next known binary name
+        }
+      }
+      if (!opened) throw new Error(`could not launch any of: ${browser.linuxCommands.join(', ')}`);
     }
     console.log(styleText('green', '✅ Browser launched successfully!'));
   } catch (error) {
-    console.error(styleText('red', `❌ Failed to open browser: ${error.message}`));
-    
+    console.error(styleText('red', `❌ Failed to open ${browser.label}: ${error.message}`));
+
     try {
-      console.log(styleText('yellow', `⚠️ Trying alternative browsers...`));
-      
-      // Try alternative browsers by platform
+      console.log(styleText('yellow', '⚠️ Falling back to your default browser (not private mode)...'));
       if (platform === 'darwin') {
-        execSync(`open -a "Safari" "${url}"`);
-        console.log(styleText('green', '✅ URL opened in Safari.'));
+        execSync(`open "${url}"`);
       } else if (platform === 'win32') {
-        execSync(`start microsoft-edge:${url}`);
-        console.log(styleText('green', '✅ URL opened in Microsoft Edge.'));
+        execSync(`start "" "${url}"`);
       } else {
-        execSync(`firefox "${url}"`);
-        console.log(styleText('green', '✅ URL opened in Firefox.'));
+        execSync(`xdg-open "${url}"`);
       }
+      console.log(styleText('green', '✅ URL opened in your default browser.'));
     } catch (fallbackError) {
       console.error(styleText('red', `❌ Could not open any browser: ${fallbackError.message}`));
       console.log(styleText('yellow', `ℹ️ Please open this URL manually: ${url}`));
@@ -101,6 +154,18 @@ function openIncognito(url) {
 }
 
 (async () => {
+  const options = parseArgs(process.argv.slice(2));
+  if (options.help) {
+    printHelp();
+    return;
+  }
+
+  const browser = BROWSERS[options.browser];
+  if (!browser) {
+    console.error(styleText('red', `❌ Unknown browser "${options.browser}". Available: ${Object.keys(BROWSERS).join(', ')}`));
+    process.exit(1);
+  }
+
   const pm = getPackageManager();
 
   // Check package.json and dev script
@@ -129,7 +194,7 @@ function openIncognito(url) {
     styleText('bold', 'Incognito Dev Mode'),
     '',
     styleText('green', '✔ Dev Command: ') + styleText('white', command),
-    styleText('cyan', '✔ Browser: ') + styleText('white', 'Google Chrome (Incognito Mode)'),
+    styleText('cyan', '✔ Browser: ') + styleText('white', `${browser.label} (${browser.privateLabel})`),
   ]);
 
   console.log(styleText('yellow', BANNER));
@@ -184,7 +249,7 @@ function openIncognito(url) {
       clearTimeout(detectTimer);
       const port = match[1];
       console.log(styleText('green', `✔ Active port detected: ${port}`));
-      openIncognito(`http://localhost:${port}`);
+      openIncognito(`http://localhost:${port}`, browser);
     }
   };
 
