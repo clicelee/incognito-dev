@@ -29,10 +29,17 @@ incognito-dev
 Your development server will automatically open in incognito mode - no more manual clicks or browser switching!
 
 The tool will:
-1. Detect your package manager (npm, yarn, or pnpm)
+1. Detect your package manager (npm, yarn, pnpm, or bun)
 2. Run the appropriate dev command (npm run dev, etc.)
-3. Find an available port (e.g., localhost:3000, localhost:3001)
-4. Launch Google Chrome in incognito mode with the local server URL
+3. Detect the local URL from your dev server's output (e.g., localhost:3000, localhost:5173)
+4. Launch your browser in private/incognito mode with the local server URL
+
+### Options
+
+```bash
+incognito-dev --browser edge   # chrome (default), brave, edge
+incognito-dev --help
+```
 
 ---
 
@@ -61,23 +68,24 @@ incognito-dev
 /___/_/ /_/\___/\____/\__, /_/ /_/_/\__/\____/   /____/\__/\__,_/_/   \__/  
                      /____/
 
-   ╔ 🚀 Launch Summary ════════════════════════════╗
-   ║                                               ║
-   ║   🕶️  Incognito Dev Mode                      ║
-   ║                                               ║
-   ║   ✔ Dev Server: npm → http://localhost:3000   ║
-   ║   ✔ Browser: Google Chrome (Incognito Mode)   ║
-   ║                                               ║
-   ╚═══════════════════════════════════════════════╝
+╔═ Launch Summary ════════════════════════════╗
+║                                             ║
+║ Incognito Dev Mode                          ║
+║                                             ║
+║ ✔ Dev Command: npm run dev                  ║
+║ ✔ Browser: Google Chrome (Incognito Mode)   ║
+║                                             ║
+╚═════════════════════════════════════════════╝
 ```
 
 ---
 
 ## ✨ Features
 
-- Automatic port detection via [`detect-port`](https://www.npmjs.com/package/detect-port)
-- Supports all major package managers: `npm`, `yarn`, `pnpm`
-- Opens Chrome incognito mode — no history, no saved logins
+- Zero dependencies — `npx incognito-dev` starts nearly instantly
+- Supports all major package managers: `npm`, `yarn`, `pnpm`, `bun`
+- Opens a private/incognito window — no history, no saved logins
+- Choose your browser: Chrome (default), Brave, or Edge via `--browser`
 - Great for testing login pages or clean sessions
 - Works with various dev servers (Vite, Next.js, Create React App, etc.)
 
@@ -86,6 +94,7 @@ incognito-dev
 
 ## 📦 Requirements
 
+- Node.js 20.12 or newer
 - A `dev` script must exist in your `package.json`:
 
 ```json
