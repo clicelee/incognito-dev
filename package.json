@@ -32,7 +32,6 @@
   "dependencies": {
     "boxen": "^5.1.2",
     "chalk": "^4.1.2",
-    "detect-port": "^1.6.1",
     "figlet": "^1.8.1"
   }
 }

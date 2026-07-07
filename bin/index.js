@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
 const { execSync, spawn } = require('child_process');
-const detect = require('detect-port');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const figlet = require('figlet');
 const chalk = require('chalk');
 const boxen = require('boxen');
-
-const DEFAULT_PORT = 3000;
 
 function getPackageManager() {
   const lockFiles = {
