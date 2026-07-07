@@ -31,6 +31,8 @@ function renderBox(title, lines) {
 
 function getPackageManager() {
   const lockFiles = {
+    'bun.lock': 'bun',
+    'bun.lockb': 'bun',
     'pnpm-lock.yaml': 'pnpm',
     'yarn.lock': 'yarn',
     'package-lock.json': 'npm',
@@ -43,6 +45,7 @@ function getPackageManager() {
 
 function getDevCommand(pm) {
   const map = {
+    bun: 'bun run dev',
     pnpm: 'pnpm dev',
     yarn: 'yarn dev',
     npm: 'npm run dev'
