@@ -1,6 +1,6 @@
 {
   "name": "incognito-dev",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Run your dev server and open localhost in Chrome Incognito mode automatically.",
   "bin": {
     "incognito-dev": "./bin/index.js"
